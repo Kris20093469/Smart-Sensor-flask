@@ -17,7 +17,7 @@ def home():
     return render_template('home.html')
 
 @app.post('/api/sensor')
-def sensor():
+def recieve_sensor():
     global latest_sensor_data
     data = request.get_json()
     doorstate = data["doorState"]
@@ -27,6 +27,10 @@ def sensor():
     return jsonify({
         "status": "ok"
     })
+
+@app.get('/api/sensor')
+def get_sensor():
+    return jsonify(latest_sensor_data)
 
 @app.route('/index/')
 def index():

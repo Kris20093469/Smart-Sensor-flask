@@ -12,7 +12,7 @@
 
         <!-- Button trigger modal -->
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-        Launch demo modal
+        View Latest Logs
         </button>
 
         <!-- Modal -->
@@ -28,7 +28,6 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
             </div>
             </div>
         </div>
@@ -36,23 +35,30 @@
         </div>
     </body>
 
-    <script>
-        async function updatedData() {
-            const response = await fetch('/api/sensor');
-            const data = await response.json();
-            const container = document.getElementById("sensorContainer");
-
-            const div = document.createElement("div");
-
-            div.textContent = "Door: " + data.doorState;
-
-            container.appendChild(div);
-                        
-                
-            
-        }
-    </script>
     <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
 </script>
+    <script>
+        async function updatedData() {
+    console.log("updatedData ran");
+
+    const response = await fetch('/api/sensor');
+    console.log("API response:", response);
+
+    const data = await response.json();
+    console.log("Data:", data);
+
+    const container = document.getElementById("sensorContainer");
+    console.log("Container:", container);
+
+    const div = document.createElement("div");
+    div.textContent = "Door: " + data.doorState;
+
+    container.appendChild(div);
+
+    console.log("Added div");
+}
+    updatedData();
+    </script>
+    
 </html>
