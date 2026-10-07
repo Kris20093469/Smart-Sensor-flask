@@ -2,12 +2,11 @@
     <title> Hello</title>
     <head>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"rel="stylesheet">
+        <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
     </head>
 
     <body>
         <h1> ok</h1>
-        <p>Door: {{ sensor.doorState }}</p>
-        <p>Motion: {{ sensor.motion }}</p>
 
 
         <!-- Button trigger modal -->
@@ -40,25 +39,35 @@
 </script>
     <script>
         async function updatedData() {
-    console.log("updatedData ran");
+            const response = await fetch('/api/sensor');
+            const logs = await response.json(); 
+           
+            const container = document.getElementById("sensorContainer");
+            container.innerHTML = "";
+            logs.forEach(log => {
+                const div = document.createElement("div");
+                if (log.doorState === "opened" && log.motion === "detected") {
+                    div.className = "alert alert-primary";
+                }
+                else if (log.doorState === "opened") {
+                    div.className = "alert alert-warning";
+                }
+                else if (log.motion === "detected") {
+                    div.className = "alert alert-danger";
+                }
+                else {
+                    div.className = "alert alert-success";
+                }
+                div.textContent = log.timestamp +
+                "| Door: " + log.doorState + "| Motion: " + log.motion
+                
+                container.appendChild(div)
+            });
 
-    const response = await fetch('/api/sensor');
-    console.log("API response:", response);
-
-    const data = await response.json();
-    console.log("Data:", data);
-
-    const container = document.getElementById("sensorContainer");
-    console.log("Container:", container);
-
-    const div = document.createElement("div");
-    div.textContent = "Door: " + data.doorState;
-
-    container.appendChild(div);
-
-    console.log("Added div");
+    
 }
-    updatedData();
+    document.getElementById("exampleModal").addEventListener("show.bs.modal", updatedData);
+    setInterval(updatedData, 1000);
     </script>
     
 </html>

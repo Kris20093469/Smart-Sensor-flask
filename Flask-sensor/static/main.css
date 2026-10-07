@@ -2,3 +2,8 @@
     padding: 10px;
     background-color: rgb(91, 29, 99);
 }
+
+.log-container {
+    max-height: 70vh;
+    overflow-y: auto;
+}
