@@ -20,10 +20,6 @@ with sqlite3.connect("sensor.db") as conn:
         )
         """)
             
-@app.route('/')
-def home():
-    return render_template('home.html')
-
 
 
 @app.post('/api/sensor')
@@ -42,22 +38,13 @@ def recieve_sensor():
                               LIMIT 1
                               
         """).fetchone()
-        print("Arduino sent:", data)
-        print("Database latest:", dict(latest) if latest else None)
-    
         if latest is None or(
              data["doorState"] != latest["doorState"] or data["motion"] != latest["motion"]
         ):
-            print("STATE CHANGED - INSERTING")
             conn.execute("""INSERT INTO sensor_logs (doorState, motion) 
                          VALUES (?, ?)
                        
-                         """, (data["doorState"], data["motion"]))
-            print("NEW ROW ID:", conn.execute(
-    "SELECT last_insert_rowid()"
-).fetchone()[0])
-        else:
-            print("NO CHANGE - NOT INSERTING")    
+                         """, (data["doorState"], data["motion"])) 
 
     
     return jsonify({
@@ -66,20 +53,35 @@ def recieve_sensor():
 
 @app.get('/api/sensor')
 def get_sensor():
-     with sqlite3.connect("sensor.db") as conn:
-          conn.row_factory = sqlite3.Row
-          rows = conn.execute(""" 
-            SELECT id, timestamp, doorState, motion
-                            FROM sensor_logs
-                            ORDER BY id DESC 
+    page = request.args.get("page", 1, type=int)
+    per_page = 15
+    offset = (page - 1) * per_page
 
-        """)
-          logs = [dict(row) for row in rows]
-          return jsonify(logs)
+    with sqlite3.connect("sensor.db") as conn:
+        conn.row_factory = sqlite3.Row
+
+        rows = conn.execute("""
+            SELECT id, timestamp, doorState, motion
+            FROM sensor_logs
+            ORDER BY id DESC
+            LIMIT ? OFFSET ?
+        """, (per_page, offset)).fetchall()
+
+        logs = [dict(row) for row in rows]
+
+        total = conn.execute(
+            "SELECT COUNT(*) FROM sensor_logs"
+        ).fetchone()[0]
+
+    return jsonify({
+        "logs": logs,
+        "page": page,
+        "totalPages": (total + per_page - 1) // per_page
+    })
           
     
 
-@app.route('/index/')
+@app.route('/')
 def index():
     
     return render_template('index.html',
